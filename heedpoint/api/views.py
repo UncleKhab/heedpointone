@@ -4,7 +4,9 @@ from .serializers import (
     ProjectSerializer,
     CreateProjectSerializer,
     ProjectDetailSerializer,
-    TaskSerializer)
+    TaskSerializer,
+    UserSerializer,
+    RegisterSerializer)
 from django.http import HttpResponse
 
 from rest_framework import generics, status
@@ -34,17 +36,19 @@ class ProjectList(generics.ListCreateAPIView):
 
 
 class ProjectDetails(APIView):
-    def get_object(self, id):
-        try:
-            return Project.objects.get(id=id)
+    serializer_class = ProjectDetailSerializer
+    lookup_url_kwarg = 'id'
 
-        except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def get(self, request, id):
-        project = self.get_object(id)
-        serializer = ProjectDetailSerializer(project)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request, format=None):
+        id = request.GET.get(self.lookup_url_kwarg)
+        if id != None:
+            project = Project.objects.filter(id=id)
+            if len(project) > 0:
+                data = ProjectDetailSerializer(project[0]).data
+                data['is_owner'] = request.user == project[0].owner
+                return Response(data, status=status.HTTP_200_OK)
+            return Response({'Project Not Found': 'Invalid Project Id'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'Bad Request': 'Id Parameter not Found in Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TaskDetails(APIView):
@@ -79,4 +83,18 @@ class TaskCreate(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Register API
+class RegisterAPI(generics.GenericAPIView):
+    serializer_class = RegisterSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user)[1]
+        })

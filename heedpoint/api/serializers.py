@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Task
+from .models import Project, Task, User
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -45,3 +45,24 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
     def get_tasks(self, obj):
         return(task for task in obj.tasks.all())
+
+# User Serializer
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        field = ('id', 'username', 'email')
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            validated_data['username'], validated_data['email'], validated_data['password'])
+
+        return user

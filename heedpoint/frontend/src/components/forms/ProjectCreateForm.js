@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 
-function ProjectCreateForm() {
+function ProjectCreateForm(props) {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [dead_line, setDeadLine] = useState("2021-01-07")
@@ -32,16 +32,13 @@ function ProjectCreateForm() {
             body: JSON.stringify({
                 title: title,
                 description: description,
-                dead_line: dead_line,
+                deadline: dead_line,
             })
         }
         fetch('/api/projects/', requestOptions)
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-                setTitle("")
-                setDescription("")
-                setDeadLine("2021-01-07")
+                props.history.push('/project/' + data.id)
             })
     }
 
