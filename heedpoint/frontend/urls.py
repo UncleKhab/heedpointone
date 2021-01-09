@@ -5,4 +5,5 @@ urlpatterns = [
     path('newproject/', index),
     path('myprojects/', index),
     path('project/<int:id>', index),
+    path('login/', index)
 ]

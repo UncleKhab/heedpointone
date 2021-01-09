@@ -1,15 +1,58 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% load static %}
+  <link rel="stylesheet" href="{% static "css/styles.css"%}"/>
   <title>HeedPoint</title>
 </head>
 <body>
-<div id="app">
-    <!-- React will load here -->
-</div>
+{% if user.is_authenticated %}
+  <div id="app">
+      <!-- React will load here -->
+  </div>
+  <script src="{% static "frontend/main.js" %}"></script>
+{% else %}
+  <div>
+    <form action="{% url 'login' %}" method="post">
+      {% csrf_token %}
+          <div class="form-username">
+              <label for="username">Username</label>
+              <input class="big" type="text" name="username" id="username">
+          </div>
+          <div class="form-password">
+              <label for="password">Password</label>
+              <input class="mg-bt-m big" type="password" name="password" id="password">
+          </div>
+          <button class="btn-social primary" type="submit">Sign In</button>
+    </form>
+  </div>
+  <div>
+    <form action="{% url 'register' %}" method="post">
+      {% csrf_token %}
+          <div class="form-username">
+              <label for="username">Username</label>
+              <input class="big" type="text" name="username" id="username">
+          </div>
+          <div class="form-email">
+              <label for="email">Email</label>
+              <input class="big" type="email" name="email" id="email">
+          </div>
+          <div class="form-password">
+              <label for="password">Password</label>
+              <input class="mg-bt-m big" type="password" name="password" id="password">
+          </div>
+          <div class="form-confirmation">
+              <label for="password">Password</label>
+              <input class="mg-bt-m big" type="password" name="confirmation" id="confirmation">
+          </div>
+          <button class="btn-social primary" type="submit">Sign In</button>
+    </form>
+  </div>
+
+{% endif %}
 </body>
-{% load static %}
-<script src="{% static "frontend/main.js" %}"></script>
+
 </html>

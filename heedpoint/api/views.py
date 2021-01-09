@@ -1,5 +1,9 @@
-from django.shortcuts import render
-from .models import Project, Task
+import json
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.contrib.auth import authenticate, login, logout
+from django.db import IntegrityError
+from .models import Project, Task, User
 from .serializers import (
     ProjectSerializer,
     CreateProjectSerializer,
@@ -86,15 +90,49 @@ class TaskCreate(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Register API
-class RegisterAPI(generics.GenericAPIView):
-    serializer_class = RegisterSerializer
+def LoginView(request):
+    if request.method == "POST":
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({
-            "user": UserSerializer(user, context=self.get_serializer_context()).data,
-            "token": AuthToken.objects.create(user)[1]
-        })
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('/')
+        else:
+            return JsonResponse({"error": "User Not Found"}, status=404)
+    else:
+        return JsonResponse({"error": "You need to send a POST request"}, status=403)
+
+
+def LogoutView(request):
+    logout(request)
+    return JsonResponse({"message": "You have been logged out"}, status=200)
+
+
+def RegisterView(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+
+        # Ensure password matches confirmation
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+        if password != confirmation:
+            return JsonResponse({
+                "message": "Passwords must match."
+            }, status=403)
+
+        # Attempt to create new user
+        try:
+            user = User.objects.create_user(username, email, password)
+            user.save()
+        except IntegrityError:
+            return JsonResponse({
+                "message": "Username already taken."
+            }, status=403)
+        login(request, user)
+        return redirect('/')
+    else:
+        return JsonResponse({"error": "You need to send a POST request"}, status=403)
