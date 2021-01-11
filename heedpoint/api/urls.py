@@ -2,17 +2,18 @@ from django.urls import path
 from .views import (
     ProjectList,
     ProjectDetails,
+    ProjectTaskList,
     TaskDetails,
-    TaskCreate,
     LoginView,
     LogoutView,
     RegisterView,
 )
 urlpatterns = [
-    path('projects/', ProjectList.as_view(), name="projects"),
+    path('projects', ProjectList.as_view(), name="projects"),
     path('get-project', ProjectDetails.as_view()),
+    path('tasks', ProjectTaskList.as_view()),
     path('task/<int:id>/', TaskDetails.as_view()),
-    path('createtask/', TaskCreate.as_view()),
+    path('createtask/', TaskDetails.as_view()),
 
 
 

@@ -20,8 +20,9 @@ function App() {
             <Switch>
                 <Route exact path='/'>
                 </Route>
-                <Route path='/newproject/' render={(props) => (<ProjectCreateForm {...props} method='POST' url="/api/projects/" />)} />
-                <Route path='/myprojects/' component={ProjectsList} />
+                <Route path='/newproject/' render={(props) => (<ProjectCreateForm {...props} method='POST' url="/api/projects?box=myprojects" />)} />
+                <Route path='/myprojects/' render={(props) => (<ProjectsList {...props} box="myprojects"/>)} />
+                <Route path='/allprojects/' render={(props) => (<ProjectsList {...props} box="allprojects"/>)} />
                 <Route path='/project/:project_id/' component={ProjectDetails} />
             </Switch>
         </Router>

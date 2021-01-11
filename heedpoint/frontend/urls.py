@@ -4,6 +4,7 @@ urlpatterns = [
     path('', index),
     path('newproject/', index),
     path('myprojects/', index),
+    path('allprojects/', index),
     path('project/<int:id>', index),
     path('login/', index)
 ]

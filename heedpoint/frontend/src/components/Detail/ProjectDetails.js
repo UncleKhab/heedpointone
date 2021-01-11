@@ -75,8 +75,8 @@ function ProjectDetails(props) {
                 </div>
                 ) 
             : null}
-            <CreateTaskForm project={project}/>
-            {loaded ? <TaskList taskList={taskList} /> : 'Still Loading'}
+            
+            {loaded ? <TaskList project_id={project_id} isOwner={isOwner} /> : 'Still Loading'}
         </div>
     )
     

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import ProjectsListItem from '../ListItems/ProjectsListItem'
 
 
-function ProjectsList() {
+function ProjectsList(props) {
     const [projects, setProjects] = useState([])
     const [loaded, setLoaded] = useState(false)
-    
+    const box = props.box
     
     useEffect(() => {
-        fetch('/api/projects/')
+        fetch(`/api/projects?box=${box}`)
         .then(response => response.json())
         .then(data => {
             setProjects(data)

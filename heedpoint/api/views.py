@@ -20,16 +20,28 @@ from rest_framework.response import Response
 # Create your views here.
 
 
-class ProjectList(generics.ListCreateAPIView):
-    def get_queryset(self):
+class ProjectList(APIView):
+
+    def get(self, request):
+        self.lookup_url_kwarg = 'box'
         user = self.request.user
-        return user.myprojects.all()
-    serializer_class = ProjectSerializer
+        box = request.GET.get(self.lookup_url_kwarg)
+        if box != None:
+            if box == 'myprojects':
+                projectList = user.myprojects.all()
+                serializer = ProjectSerializer(projectList, many=True)
+                return Response(serializer.data)
+            elif box == "allprojects":
+                projectList = Project.objects.all()
+                serializer = ProjectSerializer(projectList, many=True)
+                return Response(serializer.data)
+            elif box == "member"
+        return Response({'Bad Request': 'Box Parameter not Found in Request'}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         serializer = CreateProjectSerializer(data=request.data)
         if serializer.is_valid():
-            user = request.user
+            user = self.request.user
             title = serializer.data.get('title')
             description = serializer.data.get('description')
             deadline = serializer.data.get('deadline')
@@ -80,6 +92,25 @@ class ProjectDetails(APIView):
         return Response({'Deleted Successfully': 'Done!'})
 
 
+class ProjectTaskList(APIView):
+    lookup_url_kwarg = 'id'
+
+    def get_object(self, request):
+        id = request.GET.get(self.lookup_url_kwarg)
+        if id != None:
+            try:
+                return Project.objects.get(id=id)
+            except Project.DoesNotExist:
+                return Response({'Project Not Found': 'Invalid Project Id'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'Bad Request': 'Id Parameter not Found in Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        project = self.get_object(request)
+        taskList = project.tasks.all().order_by('-id')
+        serializer = TaskSerializer(taskList, many=True)
+        return Response(serializer.data)
+
+
 class TaskDetails(APIView):
     def get_object(self, id):
         try:
@@ -102,11 +133,9 @@ class TaskDetails(APIView):
 
     def delete(self, request, id):
         task = self.get_object(id)
-        article.delete()
+        task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-class TaskCreate(APIView):
     def post(self, request):
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():

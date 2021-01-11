@@ -12,6 +12,7 @@ function HomePage() {
         <div>
             <a href="/newproject/">Create A New Project</a>
             <a href="/myprojects/">See Your Projects</a>
+            <a href="/allprojects/">See All Projects</a>
             <button onClick={handleLogOut}>LogOut</button>
         </div>
     )

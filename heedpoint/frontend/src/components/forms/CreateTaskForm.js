@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import {getCookie} from '../HelperFunctions/helpers.js'
 
 function CreateTaskForm(props) {
@@ -7,12 +7,11 @@ function CreateTaskForm(props) {
     const [points, setPoints] =useState('')
     const [taskStatus, setTaskStatus] =useState('p')
     const [priority, setPriority] =useState('l')
-    const taskList = document.getElementById('taskList')
-    const project = props.project
+    const project_id = props.project_id
+    const setReload = props.setReload
     
     const handleSubmit = (e) =>{
         e.preventDefault()
-        const form = e.target
         const csrfToken = getCookie('csrftoken');
         const requestOptions = {
             method: 'POST',
@@ -21,7 +20,7 @@ function CreateTaskForm(props) {
                 'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
-                project: project.id,
+                project: project_id,
                 title: title,
                 requirements: requirements,
                 points: points,
@@ -32,15 +31,16 @@ function CreateTaskForm(props) {
         fetch('/api/createtask/', requestOptions)
             .then(response => response.json())
             .then(data => {
-                
                 setTitle("")
                 setRequirements('')
                 setPoints("")
                 setTaskStatus('p')
                 setPriority('l')
+                setReload(prev => !prev)
                 
             })
     }
+    
     return (
         <div>
             <form onSubmit={handleSubmit}>
