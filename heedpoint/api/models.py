@@ -25,6 +25,14 @@ class User(AbstractUser):
 #         'Project', on_delete=models.CASCADE, related_name="members")
 #     members = models.ForeignKey(User, on_delete=models.CASCADE, related_name="member")
 
+class RequestMessage(models.Model):
+    recipient = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="requests")
+    message = models.CharField(max_length=100, blank=True, null=True)
+    request = models.IntegerField(default=0)
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sent_requests")
+
 
 class Project(models.Model):
     owner = models.ForeignKey(
@@ -33,6 +41,8 @@ class Project(models.Model):
     description = models.CharField(max_length=500)
     timestamp = models.DateTimeField(auto_now_add=True)
     deadline = models.DateField(null=True, blank=True)
+    members = models.ManyToManyField(
+        User, related_name="members")
 
     def __str__(self):
         return f"{self.id} - {self.title} - {self.owner}"

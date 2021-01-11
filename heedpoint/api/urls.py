@@ -1,12 +1,13 @@
 from django.urls import path
 from .views import (
+    LoginView,
+    LogoutView,
+    RegisterView,
     ProjectList,
     ProjectDetails,
     ProjectTaskList,
     TaskDetails,
-    LoginView,
-    LogoutView,
-    RegisterView,
+    RequestMessageView,
 )
 urlpatterns = [
     path('projects', ProjectList.as_view(), name="projects"),
@@ -14,6 +15,7 @@ urlpatterns = [
     path('tasks', ProjectTaskList.as_view()),
     path('task/<int:id>/', TaskDetails.as_view()),
     path('createtask/', TaskDetails.as_view()),
+    path('message/', RequestMessageView.as_view()),
 
 
 

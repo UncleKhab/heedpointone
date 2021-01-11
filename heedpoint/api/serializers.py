@@ -1,5 +1,47 @@
 from rest_framework import serializers
-from .models import Project, Task, User
+from .models import Project, Task, User, RequestMessage
+
+# User Serializer
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        field = ('id', 'username', 'email')
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            validated_data['username'], validated_data['email'], validated_data['password'])
+
+        return user
+
+
+class RequestMessageSerializer(serializers.ModelSerializer):
+    request_recipient = serializers.SerializerMethodField('get_recipient')
+    request_sender = serializers.SerializerMethodField('get_sender')
+
+    class Meta:
+        model = RequestMessage
+        fields = ['request_recipient', 'message', 'request', 'request_sender']
+
+    def get_recipient(self, obj):
+        return obj.recipient.id
+
+    def get_sender(self, obj):
+        return ({"id": obj.sender.id, 'username': obj.sender.username})
+
+
+class CreateMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestMessage
+        fields = ['message', 'request', 'recipient']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -45,24 +87,3 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
     def get_tasks(self, obj):
         return(task for task in obj.tasks.all())
-
-# User Serializer
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        field = ('id', 'username', 'email')
-
-
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            validated_data['username'], validated_data['email'], validated_data['password'])
-
-        return user

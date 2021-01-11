@@ -7,11 +7,11 @@ import {getCookie} from '../HelperFunctions/helpers.js'
 function ProjectDetails(props) {
     const project_id = props.match.params.project_id
     const [isOwner, setIsOwner] = useState(false)
+    const [isMember, setIsMember] = useState(false)
+    const [ownerId, setOwnerId] = useState()
     const [loaded, setLoaded] = useState(false)
     const [title, setTitle] = useState('')
     const [description,setDescription] = useState('')
-    const [project, setProject] = useState({})
-    const [taskList, setTaskList] = useState([])
     const [deadLine, setDeadLine] = useState()
     const [showEdit, setShowEdit] = useState(false)
     
@@ -20,12 +20,13 @@ function ProjectDetails(props) {
             .then(response => response.json())
             .then(data => {
                 setLoaded(true)
-                setProject(data)
+                setIsOwner(data.isOwner)
+                setOwnerId(data.ownerId)
+                setIsMember(data.isMember)
                 setTitle(data.title)
                 setDescription(data.description)
-                setTaskList(data.tasks)
-                setIsOwner(data.isOwner)
                 setDeadLine(data.deadline)
+                console.log(isMember)
             })
     }
     useEffect(() => {
@@ -37,6 +38,26 @@ function ProjectDetails(props) {
     }
     const handleEdit = (e) => {
         setShowEdit(true)
+    }
+    const handleJoinRequest = (e) => {
+        const csrfToken = getCookie('csrftoken');
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body:JSON.stringify({
+                recipient: ownerId,
+                message: `would like to join you project: ${title}`,
+                request: project_id,
+            })
+        }
+        fetch('/api/message/', requestOptions)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+            })
     }
     const handleDelete = (e) => {
         const csrfToken = getCookie('csrftoken');
@@ -68,6 +89,7 @@ function ProjectDetails(props) {
                     </div>
                 )
                 : null}
+            
             {isOwner ? (
                 <div>
                     <button onClick={handleEdit}>Edit</button>
@@ -75,6 +97,8 @@ function ProjectDetails(props) {
                 </div>
                 ) 
             : null}
+
+            {isMember ? null : <button onClick={handleJoinRequest}>Send a Join Request</button>}
             
             {loaded ? <TaskList project_id={project_id} isOwner={isOwner} /> : 'Still Loading'}
         </div>

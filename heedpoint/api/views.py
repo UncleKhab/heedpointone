@@ -3,14 +3,16 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from .models import Project, Task, User
+from .models import Project, Task, User, RequestMessage
 from .serializers import (
     ProjectSerializer,
     CreateProjectSerializer,
     ProjectDetailSerializer,
     TaskSerializer,
     UserSerializer,
-    RegisterSerializer)
+    RegisterSerializer,
+    RequestMessageSerializer,
+    CreateMessageSerializer)
 from django.http import HttpResponse
 
 from rest_framework import generics, status
@@ -18,6 +20,28 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # Create your views here.
+
+
+class RequestMessageView(APIView):
+    def get(self, request):
+        user = self.request.user
+        request_messages = user.requests.all().order_by('-id')
+        serializer = RequestMessageSerializer(request_messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = CreateMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            sender = self.request.user
+            message = serializer.data.get('message')
+            request = serializer.data.get('request')
+            recipient_id = serializer.data.get('recipient')
+            recipient = User.objects.get(id=recipient_id)
+            request_message = RequestMessage(
+                sender=sender, message=message, request=request, recipient=recipient)
+            request_message.save()
+            return Response(RequestMessageSerializer(request_message).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
 
 
 class ProjectList(APIView):
@@ -35,7 +59,7 @@ class ProjectList(APIView):
                 projectList = Project.objects.all()
                 serializer = ProjectSerializer(projectList, many=True)
                 return Response(serializer.data)
-            elif box == "member"
+
         return Response({'Bad Request': 'Box Parameter not Found in Request'}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
@@ -68,8 +92,13 @@ class ProjectDetails(APIView):
         project = self.get_object(request)
         serializer = ProjectDetailSerializer(project)
         isOwner = project.owner == request.user
+        isMember = True
+        if not isOwner:
+            isMember = request.user in project.members.all()
         obj = serializer.data
         obj['isOwner'] = isOwner
+        obj['isMember'] = isMember
+        obj['ownerId'] = request.user.id
         return Response(obj)
 
     def put(self, request):
@@ -142,6 +171,9 @@ class TaskDetails(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# -- USER AUTHENTICATION RELATED VIEWS!
 
 
 def LoginView(request):
