@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import {getCookie} from '../HelperFunctions/helpers.js'
 
 function CreateTaskForm(props) {
     const [title, setTitle] =useState('')
@@ -6,26 +7,12 @@ function CreateTaskForm(props) {
     const [points, setPoints] =useState('')
     const [taskStatus, setTaskStatus] =useState('p')
     const [priority, setPriority] =useState('l')
-
+    const taskList = document.getElementById('taskList')
     const project = props.project
     
-    function getCookie(name) {
-        if (!document.cookie) {
-          return null;
-        }
-      
-        const xsrfCookies = document.cookie.split(';')
-          .map(c => c.trim())
-          .filter(c => c.startsWith(name + '='));
-      
-        if (xsrfCookies.length === 0) {
-          return null;
-        }
-        return decodeURIComponent(xsrfCookies[0].split('=')[1]);
-    }
-
     const handleSubmit = (e) =>{
         e.preventDefault()
+        const form = e.target
         const csrfToken = getCookie('csrftoken');
         const requestOptions = {
             method: 'POST',
@@ -45,7 +32,13 @@ function CreateTaskForm(props) {
         fetch('/api/createtask/', requestOptions)
             .then(response => response.json())
             .then(data => {
-                console.log(data)
+                
+                setTitle("")
+                setRequirements('')
+                setPoints("")
+                setTaskStatus('p')
+                setPriority('l')
+                
             })
     }
     return (

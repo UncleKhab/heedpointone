@@ -43,16 +43,41 @@ class ProjectDetails(APIView):
     serializer_class = ProjectDetailSerializer
     lookup_url_kwarg = 'id'
 
-    def get(self, request, format=None):
+    def get_object(self, request):
         id = request.GET.get(self.lookup_url_kwarg)
         if id != None:
-            project = Project.objects.filter(id=id)
-            if len(project) > 0:
-                data = ProjectDetailSerializer(project[0]).data
-                data['is_owner'] = request.user == project[0].owner
-                return Response(data, status=status.HTTP_200_OK)
-            return Response({'Project Not Found': 'Invalid Project Id'}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                return Project.objects.get(id=id)
+            except Project.DoesNotExist:
+                return Response({'Project Not Found': 'Invalid Project Id'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'Bad Request': 'Id Parameter not Found in Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        project = self.get_object(request)
+        serializer = ProjectDetailSerializer(project)
+        isOwner = project.owner == request.user
+        obj = serializer.data
+        obj['isOwner'] = isOwner
+        return Response(obj)
+
+    def put(self, request):
+        project = self.get_object(request)
+        user = request.user
+        if project.owner != user:
+            return Response({'Bad Request': 'You need to be the owner to modify this project'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = CreateProjectSerializer(project, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        project = self.get_object(request)
+        user = request.user
+        if project.owner != user:
+            return Response({'Bad Request': 'You need to be the owner to modify this project'}, status=status.HTTP_400_BAD_REQUEST)
+        project.delete()
+        return Response({'Deleted Successfully': 'Done!'})
 
 
 class TaskDetails(APIView):

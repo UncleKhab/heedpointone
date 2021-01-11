@@ -9,7 +9,7 @@ from .views import (
     RegisterView,
 )
 urlpatterns = [
-    path('projects/', ProjectList.as_view()),
+    path('projects/', ProjectList.as_view(), name="projects"),
     path('get-project', ProjectDetails.as_view()),
     path('task/<int:id>/', TaskDetails.as_view()),
     path('createtask/', TaskCreate.as_view()),

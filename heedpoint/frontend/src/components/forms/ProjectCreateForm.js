@@ -1,30 +1,19 @@
 import React, {useState} from 'react'
+import {getCookie} from '../HelperFunctions/helpers.js'
+
+
 
 function ProjectCreateForm(props) {
-    const [title, setTitle] = useState("")
-    const [description, setDescription] = useState("")
-    const [dead_line, setDeadLine] = useState("2021-01-07")
-    
-    function getCookie(name) {
-        if (!document.cookie) {
-          return null;
-        }
-      
-        const xsrfCookies = document.cookie.split(';')
-          .map(c => c.trim())
-          .filter(c => c.startsWith(name + '='));
-      
-        if (xsrfCookies.length === 0) {
-          return null;
-        }
-        return decodeURIComponent(xsrfCookies[0].split('=')[1]);
-    }
+    const [title, setTitle] = useState(props.title || "")
+    const [description, setDescription] = useState(props.description || "")
+    const [dead_line, setDeadLine] = useState(props.deadline || "")
+    const { method, url } = props
 
     const handleSubmit = (e) =>{
         e.preventDefault()
         const csrfToken = getCookie('csrftoken');
         const requestOptions = {
-            method: 'POST',
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
@@ -35,10 +24,14 @@ function ProjectCreateForm(props) {
                 deadline: dead_line,
             })
         }
-        fetch('/api/projects/', requestOptions)
+        fetch(url, requestOptions)
             .then(response => response.json())
             .then(data => {
-                props.history.push('/project/' + data.id)
+                if(method === "POST"){
+                    props.history.push('/project/' + data.id)
+                }else{
+                    window.location.reload()
+                }
             })
     }
 

@@ -20,6 +20,12 @@ class User(AbstractUser):
     pass
 
 
+# class ProjectMembers(models.Model):
+#     project = models.ForeignKey(
+#         'Project', on_delete=models.CASCADE, related_name="members")
+#     members = models.ForeignKey(User, on_delete=models.CASCADE, related_name="member")
+
+
 class Project(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="myprojects")
